@@ -5,11 +5,7 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <Button
-        android:id="@+id/btnDisconnectWebSocket"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Disconnect and Go Back" />
+
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvWebSocketTimeStatus"
@@ -17,5 +13,10 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:paddingTop="16dp" />
+    <Button
+        android:id="@+id/btnDisconnectWebSocket"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Disconnect and Go Back" />
 
 </LinearLayout>

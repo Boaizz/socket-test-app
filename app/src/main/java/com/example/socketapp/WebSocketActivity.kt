@@ -29,6 +29,7 @@ class WebSocketActivity : AppCompatActivity() {
     private lateinit var connectivityManager: ConnectivityManager
     private lateinit var networkCallback: ConnectivityManager.NetworkCallback
     private var isConnected = false
+    private var currentNetworkType: String = "Unknown"
     private val timeStatusRunnable = object : Runnable {
         override fun run() {
             val currentTime = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
@@ -56,11 +57,15 @@ class WebSocketActivity : AppCompatActivity() {
     private fun setupConnectivityManager() {
         connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         networkCallback = object : ConnectivityManager.NetworkCallback() {
+
             override fun onAvailable(network: Network) {
+                val networkType = getNetworkType(network)
+                currentNetworkType = networkType // Set the current network type correctly when the network is available
+
                 if (!isConnected) {
                     isConnected = true
                     runOnUiThread {
-                        timeStatusList.add("WiFi reconnected. Attempting WebSocket reconnection...")
+                        timeStatusList.add("$networkType connected.")
                         timeStatusAdapter.notifyItemInserted(timeStatusList.size - 1)
                     }
                     startWebSocketConnection()
@@ -70,9 +75,12 @@ class WebSocketActivity : AppCompatActivity() {
             override fun onLost(network: Network) {
                 isConnected = false
                 runOnUiThread {
-                    timeStatusList.add("WiFi disconnected.")
+                    // Use the previously set current network type for the disconnection message
+                    timeStatusList.add("$currentNetworkType disconnected.")
                     timeStatusAdapter.notifyItemInserted(timeStatusList.size - 1)
                 }
+                // After notifying about the disconnection, reset the current network type
+                currentNetworkType = "Unknown"
             }
         }
 
@@ -80,6 +88,14 @@ class WebSocketActivity : AppCompatActivity() {
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .build()
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
+    }
+    private fun getNetworkType(network: Network): String {
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+        return when {
+            networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true -> "WiFi"
+            networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true -> "4G"
+            else -> "Network"
+        }
     }
 
     private fun startWebSocketConnection() {
